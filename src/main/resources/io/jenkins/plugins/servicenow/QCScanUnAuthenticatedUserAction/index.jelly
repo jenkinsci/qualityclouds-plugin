@@ -1,0 +1,30 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:st="jelly:stapler">
+    <l:layout title="QCScanResult">
+        <l:side-panel>
+            <st:include page="sidepanel.jelly" it="${it.run}" optional="true" />
+        </l:side-panel>        
+        <l:main-panel>
+        
+        <table style="width:100%">
+             <tr align="center">
+                <div style="align:center; display: block;margin-left: 50%;margin-right: 50%; font-size:100%; text-align:center;">
+                    <img src="${rootURL}/plugin/qualityclouds-scan/images/Logo_QC_w.png" />
+                   
+                </div>
+            </tr> 
+            <tr align="center">
+                <div style="padding:15px;background-color:black;color:white;text-align:center;height:5%;">
+                    YOUR QUALITY CLOUDS SCAN DID NOT RUN DUE TO AN AUTHENTICATION PROBLEM
+                </div>
+            </tr>
+            <tr align="center">
+               <h2>
+                    ${it.msg}
+                </h2>  
+            </tr>
+           
+          </table>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
