@@ -1,9 +1,18 @@
 # README #
 
-How to install Quality Clouds Jenkins Plugin
+This plugin allows Quality Clouds customers to run Quality Clouds scans against their SaaS instances from a Jenkins
+build.
+
+Different parameters can be set to fail the build.
+*   Maximum number of Issues
+*   Maximun amount of Technical Debt (in minutes)
+*   Maximum number of High Severity Issues
+*   Minimum value for the Quality of Cloud Indicator (between 0 and 100)
+
+At least one valid parameter must be specified.
 
 
-### Prerequisite ###
+### Prerequisites for local installation ###
 
 * Need Jenkins to be installed.
 * Need Maven to be installed.
