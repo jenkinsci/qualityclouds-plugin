@@ -8,7 +8,7 @@
         <relativePath />
     </parent>
     <groupId>io.jenkins.plugins</groupId>
-    <artifactId>qualityclouds-scan</artifactId>
+    <artifactId>qualityclouds</artifactId>
     <version>1.0.0</version>
     <packaging>hpi</packaging>
     <properties>
