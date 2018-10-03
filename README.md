@@ -15,7 +15,7 @@ At least one valid parameter must be specified.
 ### Prerequisites for local installation ###
 
 * Need Jenkins to be installed.
-* Credentials and Credentials Binding Jenkins plugins required.
+* Credentials plugin required.
 * Need Maven to be installed.
 
 ### Installation Steps are: ###
@@ -29,10 +29,8 @@ At least one valid parameter must be specified.
 
 * Create a freestyle project.
 
-* Select the checkbox "Use secret text(s) or files(s) on the Build Environment configuration section"
-
-* On the Bindings section, add a Secret File element. The secret file should contain the Quality Clouds API token
-(you will receive this token during your onboarding as a Quality Clouds customer)
+* Create a credential of type Secret File and store the the Quality Clouds API token on this file
+  (you will receive this token during your onboarding as a Quality Clouds customer)
 
 * Add build step QCScan.
 
@@ -40,7 +38,7 @@ At least one valid parameter must be specified.
 
 	String "Instance URL" : Instance URL to scan.
 
-	String "API Token Secret File" : Enter the name of the variable assigned to the secret file on the Bindings section.
+	String "API Token Secret File" : Enter the id of the credential you created to hold the API key.
 
 	Integer "Issues Count Threshold" : Maximum issues count to have a success build.
 
