@@ -103,43 +103,27 @@ public class QCScanBuilder extends Builder implements SimpleBuildStep {
 
         taskListener.getLogger().println("Retrieving API key");
 
-        String key;
+        FileCredentials fileCredentials = CredentialsProvider.findCredentialById(apiTokenSecretFile, FileCredentials.class,run,
+                new DomainRequirement());
 
-        AbstractBuild b = (AbstractBuild) run;
-        EnvVars envVars;
+        String apiKeyFromCredentials;
 
-        try {
-            envVars = b.getEnvironment(taskListener);
-        } catch (IOException | InterruptedException e) {
-            taskListener.getLogger().println("Exception retrieving environment variables");
-            throw new AbortException("Build Failed");
-        }
+        if (fileCredentials != null) {
 
-        String secretFileName = envVars.get(apiTokenSecretFile);
+            apiKeyFromCredentials = IOUtils.toString(fileCredentials.getContent());
 
-        if (secretFileName != null) {
-
-            File f = new java.io.File(secretFileName);
-
-            key = FileUtils.readFileToString(f);
-
-            if (StringUtils.isEmpty(key)) {
-                taskListener.getLogger().println(String.format("Could not read the API key value from the secret " +
-                        "file. Please contact %s for support in setting up your build.",QCScanBuilder.QC_HELP_EMAIL));
-                throw new AbortException("Build Failed");
-            }
 
         } else {
-            taskListener.getLogger().println(String.format("Could not find a value for the API key secret file: [%s]." +
-                    " Please make sure it matches the name of the secret file variable defined in the Bindings " +
-                    "section of your build configuration.",apiTokenSecretFile));
+            taskListener.getLogger().println(String.format("Could not find a credential with id: [%s]." +
+                    " Please make sure that the value entered in the build step configuration matches the credentials" +
+                    " id for the API key file.",apiTokenSecretFile));
             throw new AbortException("Build Failed");
         }
 
         taskListener.getLogger().println("Retrieved API key. Scan starting ....");
 
         QCScanRest qcScanRest = new QCScanRest();
-        Map<String, Object> result = qcScanRest.doScan(key, instanceUrl, taskListener, issuesCountThreshold,
+        Map<String, Object> result = qcScanRest.doScan(apiKeyFromCredentials, instanceUrl, taskListener, issuesCountThreshold,
                 techDebtThreshold, qcThreshold, highSeverityThreshold);
 
         QCScanResultFactory factory = new QCScanResultFactory(result);
