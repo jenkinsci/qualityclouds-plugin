@@ -5,10 +5,12 @@ package io.jenkins.plugins.servicenow.rest;
 
 import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.jasminb.jsonapi.ResourceConverter;
+import hudson.EnvVars;
 import hudson.model.TaskListener;
 import io.jenkins.plugins.servicenow.model.SNowScanIssuesBreakDownResponse;
 import io.jenkins.plugins.servicenow.model.SNowScanRestResponse;
 import io.jenkins.plugins.servicenow.util.QCScanResultFactory;
+import jenkins.model.Jenkins;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -19,6 +21,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONObject;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.StopWatch;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -45,8 +48,32 @@ public class QCScanRest {
 	 * @return The results of the scan
 	 */
 	public  Map<String, Object> doScan(String credential, String instanceUrl, TaskListener taskListener, int issuesCountThreshold, int techDebtThreshold, int qcThreshold, int highSeverityThreshold) {
-		
+
+		EnvVars envVars = new EnvVars();
+
+
+
+//		Jenkins j = Jenkins.getActiveInstance();
+//		j.getbuil
+//		envVars = build.getEnvironment(taskListener)
+
 		HttpClient client = new DefaultHttpClient();
+
+        Properties p = System.getProperties();
+
+        Map<String,String> m = System.getenv();
+
+        String envKey = m.get("key");
+
+        if (org.apache.commons.lang.StringUtils.isEmpty(envKey)) {
+            System.out.println("se jodio desde el env");
+        }
+
+        String key = (String) p.get("key");
+
+        if (org.apache.commons.lang.StringUtils.isEmpty(key)) {
+            System.out.println("se jodio");
+        }
         
         Map<String, Object> result = new HashMap<>(); 
         result.put("StatusCode", 10000);
@@ -57,8 +84,12 @@ public class QCScanRest {
 		if(credential == null || credential.isEmpty() || instanceUrl == null || instanceUrl.isEmpty()) {
 			
 			taskListener.getLogger().println("------ InValid  Parameter ");
+
+			if (StringUtils.isEmpty(credential)) {
+				taskListener.getLogger().println("API key was null or empty");
+
+			}
 			
-			taskListener.getLogger().println("credential --" + credential);
 			taskListener.getLogger().println("instanceUrl --" + instanceUrl);
 			taskListener.getLogger().println("issuesCountThreshold --" + issuesCountThreshold);
 			taskListener.getLogger().println("techDebtThreshold --" + techDebtThreshold);

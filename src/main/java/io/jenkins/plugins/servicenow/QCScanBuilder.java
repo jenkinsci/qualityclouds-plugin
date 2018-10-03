@@ -3,22 +3,39 @@
  */
 package io.jenkins.plugins.servicenow;
 
-import hudson.AbortException;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.model.AbstractProject;
-import hudson.model.FreeStyleProject;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import com.cloudbees.plugins.credentials.CredentialsMatcher;
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.AbstractIdCredentialsListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.domains.DomainRequirement;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
+import com.cloudbees.plugins.credentials.matchers.AllOfMatcher;
+import com.cloudbees.plugins.credentials.matchers.AnyOfMatcher;
+import com.cloudbees.plugins.credentials.matchers.ConstantMatcher;
+import hudson.*;
+import hudson.model.*;
+import hudson.security.ACL;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import hudson.util.IOUtils;
+import hudson.util.ListBoxModel;
 import io.jenkins.plugins.servicenow.rest.QCScanRest;
 import io.jenkins.plugins.servicenow.util.QCScanResultFactory;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
+import org.acegisecurity.Authentication;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.plaincredentials.FileCredentials;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.springframework.util.StopWatch;
@@ -26,7 +43,9 @@ import org.springframework.util.StopWatch;
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.Map;
+import java.util.*;
+
+import static com.cloudbees.plugins.credentials.CredentialsMatchers.instanceOf;
 
 /**
  * This class is a step builder in jenkins build and entry point of QualityClouds Scan plugin responsible for creating
@@ -41,13 +60,19 @@ public class QCScanBuilder extends Builder implements SimpleBuildStep{
 	private final String apiToken;
 
 	private final String instanceUrl;
+
+	private final String credentialsId;
+
+
 	
 	private final int issuesCountThreshold, techDebtThreshold, qcThreshold, highSeverityThreshold;
 
 	@DataBoundConstructor
-	public QCScanBuilder(String apiToken, String instanceUrl, int issuesCountThreshold, int techDebtThreshold,
+	public QCScanBuilder(String credentialsId, String apiToken, String instanceUrl, int issuesCountThreshold,
+                         int techDebtThreshold,
 			int qcThreshold, int highSeverityThreshold) {
 		super();
+		this.credentialsId = credentialsId;
 		this.apiToken = apiToken;
 		this.instanceUrl = instanceUrl;
 		this.issuesCountThreshold = issuesCountThreshold;
@@ -92,10 +117,22 @@ public class QCScanBuilder extends Builder implements SimpleBuildStep{
 		StopWatch stopWatch = new StopWatch();
         stopWatch.start();
 		taskListener.getLogger().println("Scan starting ....");
+
+            FileCredentials fileCredentials = CredentialsProvider.findCredentialById(credentialsId, FileCredentials.class,run,
+                    new DomainRequirement());
+
+            String apiKeyFromCredentials = IOUtils.toString(fileCredentials.getContent());
+
+
+
+
+//		run.get
 		
 		
 		QCScanRest qcScanRest = new QCScanRest();
-		Map<String, Object> result = qcScanRest.doScan(apiToken, instanceUrl, taskListener, issuesCountThreshold, techDebtThreshold, qcThreshold, highSeverityThreshold);
+//		Map<String, Object> result = qcScanRest.doScan(apiToken, instanceUrl, taskListener, issuesCountThreshold, techDebtThreshold, qcThreshold, highSeverityThreshold);
+		Map<String, Object> result = qcScanRest.doScan(apiKeyFromCredentials, instanceUrl, taskListener, issuesCountThreshold,
+                techDebtThreshold, qcThreshold, highSeverityThreshold);
 
 		QCScanResultFactory factory = new QCScanResultFactory(result);
 		
@@ -132,12 +169,59 @@ public class QCScanBuilder extends Builder implements SimpleBuildStep{
 	}
 	
 	@Extension
+	@Symbol("Quality Clouds Scan")
     public static class Descriptor extends BuildStepDescriptor<Builder> {
+
+        public ListBoxModel doFillCredentialsIdItems(
+                @AncestorInPath Item item,
+                @QueryParameter String credentialsId
+        ) {
+
+            Collection<Job> jobs = (Collection<Job>) item.getAllJobs();
+
+            Job job = jobs.iterator().next();
+
+            StandardListBoxModel result = new StandardListBoxModel();
+            if (item == null) {
+                if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+//                    result.add()
+                    return result.add("");
+                }
+            } else {
+                if (!item.hasPermission(Item.EXTENDED_READ)
+                        && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                    return result.add(credentialsId);
+                }
+            }
+
+            return new StandardListBoxModel().withEmptySelection()
+                    .withMatching(CredentialsMatchers.anyOf(
+                            instanceOf(FileCredentials.class),
+                            instanceOf(StringCredentials.class)),
+                            CredentialsProvider.lookupCredentials(StandardCredentials.class, item));
+
+        }
  
 		public FormValidation doCheckApiToken(@QueryParameter String value) {
 
             Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
-            
+
+            Properties p = System.getProperties();
+
+            Map<String,String> m = System.getenv();
+
+            String envKey = m.get("key");
+
+            if (StringUtils.isEmpty(envKey)) {
+                System.out.println("se jodio desde el env");
+            }
+
+            String key = (String) p.get("key");
+
+            if (StringUtils.isEmpty(key)) {
+                System.out.println("se jodio");
+            }
+
             if(StringUtils.isEmpty(value)) {
             		return FormValidation.error(Messages.QCScanBuilder_DescriptorImpl_TokenIsNull());
             }
