@@ -4,19 +4,16 @@
     <f:entry title="${%Instance URL}" field="instanceUrl">
         <f:textbox />
     </f:entry>
-    <f:entry title="${%API Token}" field="apiToken">
+    <f:entry title="${%API Token Secret File}" field="apiTokenSecretFile">
         <f:textbox />
     </f:entry>
-      <f:entry title="${%QC_API_Key}" field="credentialsId" >
-        <c:select/>
-      </f:entry>
     <f:entry title="${%Issues Count Threshold}" field="issuesCountThreshold">
         <f:textbox />
     </f:entry>
     <f:entry title="${%Technical Debt Threshold}" field="techDebtThreshold">
         <f:textbox />
     </f:entry>
-    <f:entry title="${%QualityCloud Threshold}" field="qcThreshold">
+    <f:entry title="${%Quality of Cloud Threshold}" field="qcThreshold">
         <f:textbox />
     </f:entry>
     <f:entry title="${%High Severity Issues Threshold}" field="highSeverityThreshold">

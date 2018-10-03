@@ -49,38 +49,12 @@ public class QCScanRest {
 	 */
 	public  Map<String, Object> doScan(String credential, String instanceUrl, TaskListener taskListener, int issuesCountThreshold, int techDebtThreshold, int qcThreshold, int highSeverityThreshold) {
 
-		EnvVars envVars = new EnvVars();
-
-
-
-//		Jenkins j = Jenkins.getActiveInstance();
-//		j.getbuil
-//		envVars = build.getEnvironment(taskListener)
 
 		HttpClient client = new DefaultHttpClient();
 
-        Properties p = System.getProperties();
-
-        Map<String,String> m = System.getenv();
-
-        String envKey = m.get("key");
-
-        if (org.apache.commons.lang.StringUtils.isEmpty(envKey)) {
-            System.out.println("se jodio desde el env");
-        }
-
-        String key = (String) p.get("key");
-
-        if (org.apache.commons.lang.StringUtils.isEmpty(key)) {
-            System.out.println("se jodio");
-        }
-        
         Map<String, Object> result = new HashMap<>(); 
         result.put("StatusCode", 10000);
-        /*
-    		DateFormat df = new SimpleDateFormat("hh:mm:ss EEEEEEE, dd MMMMMMMMM, yyyy");
-		Date date = new Date();
-		*/
+
 		if(credential == null || credential.isEmpty() || instanceUrl == null || instanceUrl.isEmpty()) {
 			
 			taskListener.getLogger().println("------ InValid  Parameter ");
