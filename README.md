@@ -32,6 +32,10 @@ At least one valid parameter must be specified.
 * Create a credential of type Secret File and store the the Quality Clouds API token on this file
   (you will receive this token during your onboarding as a Quality Clouds customer)
 
+* The credential can be defined in the Global domain. If you want to use a specific Domain for the Quality Clouds credentials,
+you will need to create a specific domain and configure a hostname specification of "qualityclouds.com". See
+https://docs.qualityclouds.com/display/QCD/Quality+Clouds+Jenkins+Plugin for details
+
 * Add build step QCScan.
 
 * The configuration parameters for this build step are:
