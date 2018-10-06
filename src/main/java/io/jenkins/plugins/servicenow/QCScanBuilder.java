@@ -166,8 +166,6 @@ public class QCScanBuilder extends Builder implements SimpleBuildStep {
                 @QueryParameter String credentialsId
         ) {
 
-
-
             StandardListBoxModel model = new StandardListBoxModel();
 
             if (item == null) {
@@ -185,33 +183,13 @@ public class QCScanBuilder extends Builder implements SimpleBuildStep {
             Authentication authentication = item instanceof Queue.Task ?
                     Tasks.getAuthenticationOf((Queue.Task) item) : ACL.SYSTEM;
 
-            DomainRequirement hostnameRequirement = new HostnameRequirement(CREDENTIALS_DOMAIN);
-            List<FileCredentials> credentials =
-                    CredentialsProvider.lookupCredentials(FileCredentials.class,item,authentication,
-                            Arrays.asList(hostnameRequirement));
-
-            System.out.println(credentials.size());
-
-//            HostnameRequirement hr = URIRequirementBuilder.create().withHostname("").build();
-
             return  model
                     .includeEmptyValue()
-//                    .includeCurrentValue(credentialsId)
                     .includeMatchingAs(authentication,
-                                            item,
-                                            FileCredentials.class,
-                                            URIRequirementBuilder.create().withHostname(CREDENTIALS_DOMAIN).build(),
-//                                            CredentialsMatchers.always());
-                                            CredentialsMatchers.instanceOf(FileCredentials.class));
-
-//            return model;
-
-//            return new StandardListBoxModel().withEmptySelection()
-//                    .withMatching(CredentialsMatchers.anyOf(
-//                            instanceOf(FileCredentials.class),
-//                            instanceOf(StringCredentials.class)),
-//                            CredentialsProvider.lookupCredentials(StandardCredentials.class, item));
-
+                                        item,
+                                        FileCredentials.class,
+                                        URIRequirementBuilder.create().withHostname(CREDENTIALS_DOMAIN).build(),
+                                        CredentialsMatchers.instanceOf(FileCredentials.class));
         }
 
 
@@ -230,11 +208,8 @@ public class QCScanBuilder extends Builder implements SimpleBuildStep {
             if (CredentialsProvider.listCredentials(FileCredentials.class,item,authentication,
                     URIRequirementBuilder.create().withHostname(CREDENTIALS_DOMAIN).build(),
                     CredentialsMatchers.instanceOf(FileCredentials.class)).isEmpty()) {
-                return FormValidation.error("Secred doasfd");
+                return FormValidation.error(Messages.QCScanBuilder_DescriptorImpl_CredentialsNotFound());
             }
-
-
-
 
             return FormValidation.ok();
         }
