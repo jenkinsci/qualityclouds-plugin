@@ -4,9 +4,9 @@
     <f:entry title="${%Instance URL}" field="instanceUrl">
         <f:textbox />
     </f:entry>
-    <f:entry title="${%API Token Secret File}" field="apiTokenSecretFile">
-        <f:textbox />
-    </f:entry>
+      <f:entry title="${%Quality Clouds API Key}" field="credentialsId" >
+        <c:select/><!--context="${Global}"-->
+      </f:entry>
     <f:entry title="${%Issues Count Threshold}" field="issuesCountThreshold">
         <f:textbox />
     </f:entry>

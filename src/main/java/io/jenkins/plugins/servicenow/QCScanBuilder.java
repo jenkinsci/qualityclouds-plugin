@@ -5,11 +5,15 @@ package io.jenkins.plugins.servicenow;
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
+import com.cloudbees.plugins.credentials.domains.HostnameRequirement;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import hudson.*;
 import hudson.model.*;
+import hudson.model.Queue;
+import hudson.model.queue.Tasks;
+import hudson.security.ACL;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -19,22 +23,18 @@ import io.jenkins.plugins.servicenow.rest.QCScanRest;
 import io.jenkins.plugins.servicenow.util.QCScanResultFactory;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
-import org.apache.commons.io.FileUtils;
+import org.acegisecurity.Authentication;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.plaincredentials.FileCredentials;
-import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.springframework.util.StopWatch;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
-
-import static com.cloudbees.plugins.credentials.CredentialsMatchers.instanceOf;
 
 /**
  * This class is a step builder in jenkins build and entry point of QualityClouds Scan plugin responsible for creating
@@ -45,9 +45,10 @@ import static com.cloudbees.plugins.credentials.CredentialsMatchers.instanceOf;
  */
 public class QCScanBuilder extends Builder implements SimpleBuildStep {
 
-    private final static String QC_HELP_EMAIL= "help@qualityclouds.com";
+//    private final static String QC_HELP_EMAIL = "help@qualityclouds.com";
+    private final static String CREDENTIALS_DOMAIN = "qualityclouds.com";
 
-    private final String apiTokenSecretFile;
+    private final String credentialsId;
 
     private final String instanceUrl;
 
@@ -55,11 +56,11 @@ public class QCScanBuilder extends Builder implements SimpleBuildStep {
     private final int issuesCountThreshold, techDebtThreshold, qcThreshold, highSeverityThreshold;
 
     @DataBoundConstructor
-    public QCScanBuilder(String apiTokenSecretFile, String instanceUrl, int issuesCountThreshold,
+    public QCScanBuilder(String credentialsId, String instanceUrl, int issuesCountThreshold,
                          int techDebtThreshold,
                          int qcThreshold, int highSeverityThreshold) {
         super();
-        this.apiTokenSecretFile = apiTokenSecretFile;
+        this.credentialsId = credentialsId;
         this.instanceUrl = instanceUrl;
         this.issuesCountThreshold = issuesCountThreshold;
         this.techDebtThreshold = techDebtThreshold;
@@ -68,8 +69,8 @@ public class QCScanBuilder extends Builder implements SimpleBuildStep {
     }
 
 
-    public String getApiTokenSecretFile() {
-        return apiTokenSecretFile;
+    public String getCredentialsId() {
+        return credentialsId;
     }
 
     public String getInstanceUrl() {
@@ -103,7 +104,7 @@ public class QCScanBuilder extends Builder implements SimpleBuildStep {
 
         taskListener.getLogger().println("Retrieving API key");
 
-        FileCredentials fileCredentials = CredentialsProvider.findCredentialById(apiTokenSecretFile, FileCredentials.class,run,
+        FileCredentials fileCredentials = CredentialsProvider.findCredentialById(credentialsId, FileCredentials.class, run,
                 new DomainRequirement());
 
         String apiKeyFromCredentials;
@@ -116,7 +117,7 @@ public class QCScanBuilder extends Builder implements SimpleBuildStep {
         } else {
             taskListener.getLogger().println(String.format("Could not find a credential with id: [%s]." +
                     " Please make sure that the value entered in the build step configuration matches the credentials" +
-                    " id for the API key file.",apiTokenSecretFile));
+                    " id for the API key file.", credentialsId));
             throw new AbortException("Build Failed");
         }
 
@@ -160,14 +161,80 @@ public class QCScanBuilder extends Builder implements SimpleBuildStep {
     @Symbol("Quality Clouds Scan")
     public static class Descriptor extends BuildStepDescriptor<Builder> {
 
+        public ListBoxModel doFillCredentialsIdItems(
+                @AncestorInPath Item item,
+                @QueryParameter String credentialsId
+        ) {
 
-        public FormValidation doCheckApiTokenSecretFile(@QueryParameter String value) {
+
+
+            StandardListBoxModel model = new StandardListBoxModel();
+
+            if (item == null) {
+                if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+                   return new StandardListBoxModel().includeCurrentValue(credentialsId);
+                }
+            } else {
+                if (!item.hasPermission(Item.EXTENDED_READ)
+                        && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                    return new StandardListBoxModel().includeCurrentValue(credentialsId);
+                }
+            }
+
+
+            Authentication authentication = item instanceof Queue.Task ?
+                    Tasks.getAuthenticationOf((Queue.Task) item) : ACL.SYSTEM;
+
+            DomainRequirement hostnameRequirement = new HostnameRequirement(CREDENTIALS_DOMAIN);
+            List<FileCredentials> credentials =
+                    CredentialsProvider.lookupCredentials(FileCredentials.class,item,authentication,
+                            Arrays.asList(hostnameRequirement));
+
+            System.out.println(credentials.size());
+
+//            HostnameRequirement hr = URIRequirementBuilder.create().withHostname("").build();
+
+            return  model
+                    .includeEmptyValue()
+//                    .includeCurrentValue(credentialsId)
+                    .includeMatchingAs(authentication,
+                                            item,
+                                            FileCredentials.class,
+                                            URIRequirementBuilder.create().withHostname(CREDENTIALS_DOMAIN).build(),
+//                                            CredentialsMatchers.always());
+                                            CredentialsMatchers.instanceOf(FileCredentials.class));
+
+//            return model;
+
+//            return new StandardListBoxModel().withEmptySelection()
+//                    .withMatching(CredentialsMatchers.anyOf(
+//                            instanceOf(FileCredentials.class),
+//                            instanceOf(StringCredentials.class)),
+//                            CredentialsProvider.lookupCredentials(StandardCredentials.class, item));
+
+        }
+
+
+        public FormValidation doCheckCredentialsId( @AncestorInPath Item item, @QueryParameter String value) {
 
             Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
+
 
             if (StringUtils.isEmpty(value)) {
                 return FormValidation.error(Messages.QCScanBuilder_DescriptorImpl_TokenIsNull());
             }
+
+            Authentication authentication = item instanceof Queue.Task ?
+                    Tasks.getAuthenticationOf((Queue.Task) item) : ACL.SYSTEM;
+
+            if (CredentialsProvider.listCredentials(FileCredentials.class,item,authentication,
+                    URIRequirementBuilder.create().withHostname(CREDENTIALS_DOMAIN).build(),
+                    CredentialsMatchers.instanceOf(FileCredentials.class)).isEmpty()) {
+                return FormValidation.error("Secred doasfd");
+            }
+
+
+
 
             return FormValidation.ok();
         }
