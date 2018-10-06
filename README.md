@@ -38,7 +38,7 @@ At least one valid parameter must be specified.
 
 	String "Instance URL" : Instance URL to scan.
 
-	String "API Token Secret File" : Enter the id of the credential you created to hold the API key.
+	String "API Token Secret File" : Select the credential you created to hold the API key.
 
 	Integer "Issues Count Threshold" : Maximum issues count to have a success build.
 
@@ -48,7 +48,7 @@ At least one valid parameter must be specified.
 
 	Integer "High Severity Issues Threshold" : Maximum High Severity issues count to have a success build.
 
-* Please refer to https://docs.qualityclouds.com or contact help@qualityclouds.com in case of issues configuring your
+* Please refer to https://docs.qualityclouds.com/display/QCD/Quality+Clouds+Jenkins+Plugin or contact help@qualityclouds.com in case of issues configuring your
 build.
 
 
