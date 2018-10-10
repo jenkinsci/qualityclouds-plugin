@@ -158,7 +158,7 @@ public class QCScanBuilder extends Builder implements SimpleBuildStep {
     }
 
     @Extension
-    @Symbol("Quality Clouds Scan")
+    @Symbol("qualityCloudsScan")
     public static class Descriptor extends BuildStepDescriptor<Builder> {
 
         public ListBoxModel doFillCredentialsIdItems(
