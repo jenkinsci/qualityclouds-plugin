@@ -24,17 +24,13 @@
         </license>
     </licenses>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>nexus-snapshots</id>
-            <url>https://nexus.qualityclouds.com/repository/maven-snapshots/</url>
-        </snapshotRepository>
-        <repository>
-            <id>nexus-releases</id>
-            <url>https://nexus.qualityclouds.com/repository/maven-releases/</url>
-        </repository>
-    </distributionManagement>
-
+    <developers>
+        <developer>
+            <id>saleig</id>
+            <name>Ignacio Sales</name>
+            <email>ignacio@qualityclouds.com</email>
+        </developer>
+    </developers>
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
@@ -52,14 +48,14 @@
         </pluginRepository>
     </pluginRepositories>
 
-    <!-- Assuming you want to host on @jenkinsci:
-    <url>https://wiki.jenkins.io/display/JENKINS/TODO+Plugin</url>
+
+    <url>https://docs.qualityclouds.com/display/QCD/Quality+Clouds+Jenkins+Plugin</url>
     <scm>
-        <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+        <connection>scm:git:git://github.com/jenkinsci/qualityclouds-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:jenkinsci/qualityclouds-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/qualityclouds-plugin</url>
     </scm>
-    -->
+
     <dependencies>
     		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
         <dependency>
