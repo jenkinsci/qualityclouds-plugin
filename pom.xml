@@ -9,7 +9,7 @@
     </parent>
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>qualityclouds</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <properties>
         <jenkins.version>2.138.1</jenkins.version>
@@ -54,7 +54,7 @@
         <connection>scm:git:git://github.com/jenkinsci/qualityclouds-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/qualityclouds-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/qualityclouds-plugin</url>
-      <tag>qualityclouds-1.0.1</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <dependencies>
