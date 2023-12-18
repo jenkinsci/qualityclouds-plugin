@@ -38,7 +38,7 @@
         </repository>
         <repository>
             <id>nexus</id>
-            <url>http://nexus.qualityclouds.com/repository/qc-group/</url>
+            <url>https://nexus.qualityclouds.com/repository/qc-group/</url>
         </repository>
     </repositories>
     <pluginRepositories>
