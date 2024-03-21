@@ -1,5 +1,8 @@
 # README #
 
+## This plugin is archived as of March 2024
+## Visit https://www.qualityclouds.com for alternatives
+
 This plugin allows Quality Clouds customers to run Quality Clouds scans against their ServiceNow and Salesforce
 instances from a Jenkins build.
 
